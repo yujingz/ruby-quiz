@@ -88,25 +88,15 @@ class Sodoku
   end
 
   def deduce
+    success = false
+    [:col_each, :row_each, :box_each].each do |method|
+      @n.times do |i|
 
+
+    end
 
   end
 
 end
 
-solver = Sodoku.new(data_source)
-
-begin
-  puts "Input:", solver
-  case solver.backtrack_solve
-  when :solved
-    puts "Solution:"
-  when :multiple_solutions
-    puts "There are multiple solutions!", "One solution:"
-  else
-    puts "Impossible:"
-  end
-  p solver
-rescue => e
-  p e.message
-end
+Sodoku.new(data_source)
