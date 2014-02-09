@@ -17,7 +17,19 @@ class Sodoku
 
   def initialize(source_str)
     load_data(source_str)
-    solve
+
+    @n = @board.size
+    @sqrt_n = Math.sqrt(@n).to_i
+    @arr = @board.map do |row|
+      (0..@n).map do |i|
+        ( (1..@n) === row[i] ) ? [row[i]] : (1..@n).to_a
+      end
+    end
+
+    @row_fix = Array.new(@n, [])
+    @col_fix = Array.new(@n, [])
+    @box_fix = Array.new(@n, [])
+    @n.times { |row| @n.times { |col| update_fix(row, col) } }
   end
 
   def load_data(source_str)
@@ -28,9 +40,73 @@ class Sodoku
     end
   end
 
-  def solve
-    p @board
+  def to_a
+    @arr.collect { |row| row.collect { |x|
+      (x.size == 1) ? x[0] : nil
+    } }
   end
+
+  def to_s
+    fw = @n.to_s.size
+    to_a.collect { |row| row.collect { |x|
+      (x ? x.to_s : "_").rjust(fw)
+    }.join " " }.join "\n"
+  end
+
+  def finished?
+    @arr.each { |row| row.each { |e| return false if e.size > 1 } }
+    true
+  end
+
+  def rc_to_box(r, c)
+    (r - (r % @sqrt_n)) + (c / @sqrt_n)
+  end
+
+  def update_fix(row, col)
+    if @arr[row][col].size == 1
+      @row_fix[row] << @arr[row][col][0]
+      @col_fix[col] << @arr[row][col][0]
+      @box_fix[rc_to_box(row, col)] << @arr[row][col][0]
+    end
+  end
+
+  def reduce
+    success = false
+    @n.times do |row|
+      @n.times do |col|
+        if (sz = @arr[row][col].size) > 1
+          @arr[row][col] = @arr[row][col] - (@row_fix[row] | @col_fix[col] | @box_fix[rc_to_box(row, col)] )
+          raies "Impossible to solve" if @arr[row][col].empty?
+          if @arr[row][col].size < sz
+            success = true
+            update_fix(row, col)
+          end
+        end
+      end
+    end
+    success
+  end
+
+  def deduce
+
+
+  end
+
 end
 
-Sodoku.new(data_source)
+solver = Sodoku.new(data_source)
+
+begin
+  puts "Input:", solver
+  case solver.backtrack_solve
+  when :solved
+    puts "Solution:"
+  when :multiple_solutions
+    puts "There are multiple solutions!", "One solution:"
+  else
+    puts "Impossible:"
+  end
+  p solver
+rescue => e
+  p e.message
+end
